@@ -54,6 +54,7 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
+            overscroll-behavior-y: none;
         }
 
         /* Cinematic layers */
@@ -159,10 +160,16 @@
             box-shadow: var(--shadow);
             backdrop-filter: blur(16px);
             padding: 18px;
+            max-height: calc(100svh - 32px);
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
             transform: translateY(18px) scale(0.985);
             opacity: 0;
             transition: opacity 900ms cubic-bezier(.2,.9,.2,1), transform 900ms cubic-bezier(.2,.9,.2,1);
         }
+
+        /* Make scrolling feel intentional (mobile) */
+        .card::-webkit-scrollbar { width: 0; height: 0; }
 
         body.begun .card {
             opacity: 1;
@@ -402,6 +409,7 @@
             text-transform: uppercase;
             cursor: pointer;
             user-select: none;
+            touch-action: manipulation;
             transition: transform 180ms ease, border-color 180ms ease, filter 180ms ease;
         }
         .cta:hover { border-color: rgba(255, 246, 242, 0.36); filter: brightness(1.05); }
@@ -436,6 +444,10 @@
             .subtitle { font-size: clamp(1.2rem, 6vw, 1.55rem); }
             .message { font-size: clamp(1.12rem, 5.6vw, 1.42rem); }
             .signature { font-size: clamp(1.2rem, 6.2vw, 1.6rem); }
+
+            .overlay-card { padding: 18px; }
+            .cta { width: 100%; padding: 14px 18px; }
+            .pill { padding: 7px 10px; }
         }
 
         @media (max-width: 360px) {
@@ -672,7 +684,8 @@
         // CANVAS FX (hearts + sparkles + fireworks)
         // =====================
         const ctx = els.canvas.getContext('2d', { alpha: true });
-        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 520px)').matches;
+        const dpr = Math.max(1, Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1));
         let W = 0, H = 0;
 
         function resize() {
@@ -719,7 +732,10 @@
 
         function seedFloaters() {
             floaters.length = 0;
-            const count = Math.round(Math.min(120, Math.max(70, W / 9)));
+            const base = isMobile ? 60 : 80;
+            const scale = isMobile ? 12 : 9;
+            const cap = isMobile ? 85 : 120;
+            const count = Math.round(Math.min(cap, Math.max(base, W / scale)));
             for (let i = 0; i < count; i++) {
                 spawnFloater();
                 floaters[floaters.length - 1].y = rand(0, H);
